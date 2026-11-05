@@ -1134,8 +1134,17 @@ public class UmaViewerUI : MonoBehaviour
         }
     }
 
+    // The motions the animation list shows now (used by BatchVMDRecorder)
+    [NonSerialized] public List<UmaDatabaseEntry> ListedAnimations = new List<UmaDatabaseEntry>();
+    /// <summary>The animation set shown: -1 Generic, -2 Tail, -3 Ear, otherwise a character id.</summary>
+    [NonSerialized] public int ListedAnimationSet;
+    [NonSerialized] public bool ListedAnimationsMini;
+
     void ListAnimations(int umaId, bool mini)
     {
+        ListedAnimations = new List<UmaDatabaseEntry>();
+        ListedAnimationSet = umaId;
+        ListedAnimationsMini = mini;
         ScrollRect animationList = mini ? MiniAnimationList : AnimationList;
         PageManager pageManager = mini ? MiniAnimationPageCtrl : AnimationPageCtrl;
         for (int i = animationList.content.childCount - 1; i >= 0; i--)
@@ -1166,6 +1175,7 @@ public class UmaViewerUI : MonoBehaviour
                     LoadedAnimation();
                 };
                 pageentrys.Add(pageentry);
+                ListedAnimations.Add(entry);
             }
             pageManager.Initialize(pageentrys, animationList);
         }
@@ -1204,6 +1214,7 @@ public class UmaViewerUI : MonoBehaviour
 
     void CreateAnimationSelectionPanel(UmaDatabaseEntry entry, Transform parent)
     {
+        ListedAnimations.Add(entry);
         var container = Instantiate(UmaContainerPrefab, parent).GetComponent<UmaUIContainer>();
         container.Name = container.name = Path.GetFileName(entry.Name);
         container.FontSize = 20;

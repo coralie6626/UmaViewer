@@ -16,6 +16,12 @@ public class UISettingsAnimation : MonoBehaviour
     public Slider SpeedSlider;
     public Button VMDButton;
 
+    private void Start()
+    {
+        // Adds the "Record All" (batch VMD) button beside "Record VMD"
+        gameObject.AddComponent<BatchVMDRecorder>().Attach(VMDButton);
+    }
+
     internal void UpdateAnimationInfo(UmaContainerCharacter umaContainer)
     {
         if (umaContainer.OverrideController["clip_2"].name != "clip_2")

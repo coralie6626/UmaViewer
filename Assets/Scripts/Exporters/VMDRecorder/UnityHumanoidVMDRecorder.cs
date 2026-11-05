@@ -236,13 +236,28 @@ public class UnityHumanoidVMDRecorder : MonoBehaviour
         animator.Play(state.shortNameHash, 0, state.normalizedTime);
     }
 
+    /// <summary>
+    /// When true, FixedUpdate saves nothing: the caller saves each frame with CaptureFrame().
+    /// FixedUpdate runs before the animator's AnimatePhysics step, so it always saves the pose
+    /// of the step before (and, on the first frame after Initialize, the T-pose it just set).
+    /// </summary>
+    public bool ManualCapture = false;
+
     private void FixedUpdate()
     {
-        if (IsRecording && !IsLive)
+        if (IsRecording && !IsLive && !ManualCapture)
         {
             SaveFrame();
             FrameNumber++;
         }
+    }
+
+    /// <summary>Saves the pose the bones have now as the next frame (with ManualCapture).</summary>
+    public void CaptureFrame()
+    {
+        if (!IsRecording) return;
+        SaveFrame();
+        FrameNumber++;
     }
 
     bool lastvisable;
