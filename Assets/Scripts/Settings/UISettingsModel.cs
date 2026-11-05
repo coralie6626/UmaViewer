@@ -2,6 +2,7 @@
 using SFB;
 #endif
 
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -125,4 +126,61 @@ public class UISettingsModel : MonoBehaviour
         UmaViewerUI.Instance.ShowMessage("Not supported on this platform", UIMessageType.Warning);
 #endif
     }
+
+    #region MMD bone names toggle
+
+    private void Start()
+    {
+        CreateMmdBoneNamesToggle();
+    }
+
+    public void SetMmdBoneNames(bool isOn)
+    {
+        if (Config.Instance == null || Config.Instance.PmxMmdBoneNames == isOn) return;
+        Config.Instance.PmxMmdBoneNames = isOn;
+        Config.Instance.UpdateConfig(false);
+    }
+
+    /// <summary>
+    /// Clones the "Face Override" row into a new "MMD Bone Names" row right below it,
+    /// and moves the rows under it down to make room (the panel has no layout group).
+    /// </summary>
+    private void CreateMmdBoneNamesToggle()
+    {
+        if (_faceOverride == null) return;
+        var srcRow = _faceOverride.transform.parent as RectTransform;
+        if (srcRow == null || srcRow.parent == null) return;
+        var panel = srcRow.parent;
+        float shift = srcRow.sizeDelta.y;
+
+        var row = (RectTransform)Instantiate(srcRow.gameObject, panel).transform;
+        row.name = "MmdBoneNames";
+        row.SetSiblingIndex(srcRow.GetSiblingIndex() + 1);
+        row.anchoredPosition = srcRow.anchoredPosition - new Vector2(0, shift);
+
+        // Move everything below the new row down; shrink the materials list to keep the panel height
+        for (int i = row.GetSiblingIndex() + 1; i < panel.childCount; i++)
+        {
+            var sib = (RectTransform)panel.GetChild(i);
+            sib.anchoredPosition -= new Vector2(0, shift);
+            if (MaterialsList && MaterialsList.transform.IsChildOf(sib) && sib.sizeDelta.y > shift * 2)
+                sib.sizeDelta -= new Vector2(0, shift);
+        }
+
+        var toggle = row.GetComponentInChildren<Toggle>(true);
+        toggle.onValueChanged = new Toggle.ToggleEvent(); // drop the cloned persistent SetFaceOverrideEnable call
+        toggle.SetIsOnWithoutNotify(Config.Instance?.PmxMmdBoneNames ?? true);
+        toggle.onValueChanged.AddListener(SetMmdBoneNames);
+
+        var label = row.GetComponentInChildren<TMP_Text>(true);
+        if (label)
+        {
+            label.text = "MMD Bone Names";
+            label.enableAutoSizing = true;
+            label.fontSizeMin = 12;
+            label.fontSizeMax = label.fontSize;
+        }
+    }
+
+    #endregion
 }

@@ -575,6 +575,7 @@ public class ModelExporter
     private static Bone[] ReadBones(List<Transform> bonelist)
     {
         List<Bone> pmxbones = new List<Bone>();
+        bool useMmdNames = Config.Instance?.PmxMmdBoneNames ?? true;
 
         // 记录特殊骨骼索引，用于后续添加「下半身」虚拟骨骼
         int hipIndex = -1;
@@ -587,7 +588,7 @@ public class ModelExporter
             Bone pmxbone = new Bone();
 
             // 应用骨骼名称映射：Unity英文名 → MMD日文名
-            if (BoneNameMapping.TryGetValue(bone.name, out string mappedName))
+            if (useMmdNames && BoneNameMapping.TryGetValue(bone.name, out string mappedName))
             {
                 pmxbone.Name = mappedName;        // 日文名（MMD主名称）
                 pmxbone.NameEn = bone.name;       // 英文名（保留原始名称）
@@ -661,7 +662,8 @@ public class ModelExporter
 
         // 添加「下半身」虚拟骨骼 — MMD标准骨骼中必须存在
         // Uma模型没有独立的下半身骨骼，此骨骼位于Hip位置，作为大腿的父骨骼
-        if (hipIndex >= 0)
+        // Only with MMD names: with original Unity names, keep the original hierarchy
+        if (useMmdNames && hipIndex >= 0)
         {
             int lowerBodyIndex = pmxbones.Count;
             Bone lowerBody = new Bone();

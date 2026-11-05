@@ -47,6 +47,9 @@ public class Config
     public string TargetFrameRateTip = "Limits application frame rate. Available values: 60, 30";
     public int TargetFrameRate = 60;
 
+    public string PmxMmdBoneNamesTip = "true/false. PMX export: rename standard bones to MMD Japanese names (センター, 上半身, 左腕...) and add the 下半身 bone. false keeps the original Unity bone names and hierarchy.";
+    public bool PmxMmdBoneNames = true;
+
     public bool RegionDetectionPassed = false;
 
     public string VmdMorphConvertSettingTip = "The mapping of MMD mprphs to UMA mprphs during VMD recording, multiple UMA expression weights will be combined (not exceeding 1)";
