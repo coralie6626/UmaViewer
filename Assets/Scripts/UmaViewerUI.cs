@@ -123,6 +123,11 @@ public class UmaViewerUI : MonoBehaviour
 
     public string CurrentHeadCostumeId = string.Empty;
 
+    // The character whose costumes are currently listed (used by batch export)
+    [NonSerialized] public CharaEntry CostumeListChara;
+    [NonSerialized] public bool CostumeListMini;
+    [NonSerialized] public ScrollRect CostumeListRect;
+
     [Header("Live")]
     public bool LiveTime = false;
     public bool isRecordVMD;
@@ -905,6 +910,9 @@ public class UmaViewerUI : MonoBehaviour
     void ListCostumes(CharaEntry chara, bool mini)
     {
         ScrollRect costumeList = mini ? MiniCostumeList : chara.IsMob ? MobCostumeList : CostumeList;
+        CostumeListChara = chara;
+        CostumeListMini = mini;
+        CostumeListRect = costumeList;
         for (int i = costumeList.content.childCount - 1; i >= 0; i--)
         {
             Destroy(costumeList.content.GetChild(i).gameObject);
