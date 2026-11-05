@@ -2530,10 +2530,19 @@ public class UmaContainerCharacter : UmaContainer
         {
             return;
         }
-        foreach (var pair in InitBoneTransform)
+        // Parents first: these are world positions and rotations, so a parent set after its
+        // child would drag the child off its own (the skinned bones aren't listed in order).
+        foreach (var pair in InitBoneTransform.OrderBy(p => BoneDepth(p.Key)))
         {
-            pair.Key.SetPositionAndRotation(pair.Value.pos, pair.Value.rot);
+            if (pair.Key) pair.Key.SetPositionAndRotation(pair.Value.pos, pair.Value.rot);
         }
+    }
+
+    static int BoneDepth(Transform t)
+    {
+        int d = 0;
+        for (; t != null; t = t.parent) d++;
+        return d;
     }
 
     public List<UmaDatabaseEntry> GetAssetsList()

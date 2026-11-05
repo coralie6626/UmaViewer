@@ -194,9 +194,13 @@ public class UnityHumanoidVMDRecorder : MonoBehaviour
         var state = animator.GetCurrentAnimatorStateInfo(0);
         animator.enabled = false;
 
-        // Set to T-Pose
-        characterContainer.ResetBodyPose();
+        // Set to T-Pose. UpBody_Ctrl (the parent of Waist, Spine and everything above) first:
+        // ResetBodyPose sets world rotations, and resetting UpBody_Ctrl after it dragged the
+        // whole upper body by the motion's UpBody_Ctrl rotation, so the reference the motion is
+        // measured from kept part of the motion (her arms 9° off in idle02_loop, more the more
+        // the motion turns her upper body; the hips, not under it, were right).
         characterContainer.UpBodyReset();
+        characterContainer.ResetBodyPose();
 
         // A-Pose旋转已移除：Ghost在T-Pose初始化，与PMX导出的参考姿势一致
         // BoneDictionary[BoneNames.左腕].Rotate(0, 0, -aposeDegress);
@@ -946,9 +950,31 @@ public class UnityHumanoidVMDRecorder : MonoBehaviour
             centerOffsetLength = Vector3.Distance(boneDictionary[BoneNames.全ての親].position, boneDictionary[BoneNames.センター].position);
         }
 
+        // The ghosts parents first. GhostAll sets world rotations and positions, so a parent set
+        // after its child drags the child along: in BoneDictionary order 頭 (Head) comes before
+        // 首 (Neck), so the head, eyes, ears and jaw were saved relative to the neck of the frame
+        // before (the T-pose on the first frame: the head 5-30° off there, a lag after).
+        List<BoneNames> ghostOrder;
+
+        List<BoneNames> GhostOrder()
+        {
+            if (ghostOrder != null) return ghostOrder;
+            int Depth(Transform t)
+            {
+                int d = 0;
+                for (; t != null; t = t.parent) d++;
+                return d;
+            }
+            ghostOrder = GhostDictionary.Keys
+                .Where(b => GhostDictionary[b].ghost != null && GhostDictionary[b].enabled)
+                .OrderBy(b => Depth(GhostDictionary[b].ghost)) // stable: equal depths keep their order
+                .ToList();
+            return ghostOrder;
+        }
+
         public void GhostAll()
         {
-            foreach (BoneNames boneName in GhostDictionary.Keys)
+            foreach (BoneNames boneName in GhostOrder())
             {
                 if (GhostDictionary[boneName].ghost == null || !GhostDictionary[boneName].enabled) { continue; }
                 Quaternion transQuaternion = boneDictionary[boneName].rotation * Quaternion.Inverse(OriginalRotationDictionary[boneName]);
